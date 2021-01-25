@@ -1,5 +1,4 @@
 package IBS.Candy;
-
 import IBS.Candy.Candy;
 
 public class Marzipan extends Candy {

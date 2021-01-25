@@ -1,5 +1,4 @@
 package IBS.CandyBoxInterface;
-
 import IBS.Candy.Candy;
 
 public interface CandyBoxable {

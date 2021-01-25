@@ -2,7 +2,6 @@ package IBS.CandyBox;
 
 import IBS.Candy.Candy;
 import IBS.CandyBoxInterface.CandyBoxable;
-
 import java.util.*;
 
 public class CandyBox implements CandyBoxable {

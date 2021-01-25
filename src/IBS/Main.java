@@ -2,7 +2,6 @@ package IBS;
 
 import IBS.Candy.Candy;
 import java.util.ArrayList;
-
 import IBS.Candy.Chocolate;
 import IBS.Candy.Marmalade;
 import IBS.Candy.Marzipan;

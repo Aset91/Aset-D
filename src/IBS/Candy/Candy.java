@@ -1,5 +1,4 @@
 package IBS.Candy;
-
 public abstract class Candy {
 
     private String name;
