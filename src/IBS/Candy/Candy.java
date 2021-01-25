@@ -1,4 +1,4 @@
-package IBS;
+package IBS.Candy;
 
 public abstract class Candy {
 

@@ -1,6 +1,6 @@
-package IBS;
+package IBS.CandyBoxInterface;
 
-import java.util.*;
+import IBS.Candy.Candy;
 
 public interface CandyBoxable {
 
