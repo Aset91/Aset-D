@@ -35,9 +35,9 @@ public class TaskTest {
     public void test() {
         //Выбрать Меню
         String menuButton = "//a[@data-toggle= 'dropdown' and @class='hidden-xs']";
-        List<WebElement> menuButtonList = driver.findElements(By.xpath(menuButton));
-        if (!menuButtonList.isEmpty()) {
-            menuButtonList.get(0).click();
+        WebElement menuButtonList = driver.findElement(By.xpath(menuButton));
+
+            menuButtonList.click();
 
             //Компаниям > Здоровье > Добровольное медицинское страхование
             String forCompanies = "//a[contains(text(),'Компаниям')]";
@@ -95,7 +95,7 @@ public class TaskTest {
             checkErrorMessageAtField(driver.findElement(By.xpath(String.format(inputField, "Email"))), "Некорректное значение");
         }
 
-    }
+
 
     @After
     public void after() {
