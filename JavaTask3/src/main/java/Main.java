@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,20 +16,18 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) throws IOException, FileNotFoundException {
-        File file = new File("D:\\IBS_tasks\\JavaTask3\\src\\main\\java\\JSONFile\\Organizations.json");
+        File file = new File("src\\main\\java\\JSONFile\\Organizations.json");
 
         ObjectMapper mapper = new ObjectMapper();
         Organization[] organizations = mapper.readValue(file, Organization[].class);
 
         Stream.of(organizations).forEach(org -> {
-                    System.out.println(String.join("", "\"", org.name, "\" - \"", org.foundationDate, "\""));
+                    System.out.println(String.join("", "\"", org.getName(), "\" - \"", org.getFoundationDate(), "\""));
                 }
         );
 
         List<Organization> orgs = new ArrayList<>();
-        for (Organization org : organizations) {
-            orgs.add(org);
-        }
+        orgs.addAll(Arrays.asList(organizations));
         System.out.println(orgs);
 
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -42,12 +41,24 @@ public class Main {
 
         System.out.println("Test: " + getDatesList(orgs));
 
-        Stream.of(organizations)
+        // Почему стрим берется из массива если до этого был сделан Лист?
+        /*Stream.of(organizations)
                 .flatMap(c -> c.securities.stream())
                 .filter(b -> formatStringToLocalDate(getDatesList(orgs), mainDateTimeFormatter).isBefore(LocalDate.now()))
                 .collect(Collectors.toList())
-                .forEach(System.out::println);
+                .forEach(System.out::println);*/
 
+        // Правильный фильтр по датам
+        List<Securities> outdatedSecurities = new ArrayList<>();
+        orgs.forEach(org -> {
+            outdatedSecurities.addAll(
+                    org.getSecurities().stream()
+                        .filter(security -> security.getValidTillAsDate().isBefore(LocalDate.now()))
+                        .collect(Collectors.toList()));
+        });
+
+        System.out.println("Просроченные ценные бумаги:");
+        System.out.println(outdatedSecurities);
     }
 
     public static LocalDate formatStringToLocalDate(List<String> date, DateTimeFormatter dateFormatter) {
@@ -63,8 +74,8 @@ public class Main {
         List<String> listDates = new ArrayList<>();
         String date;
         for (Organization o : orgClass) {
-            for (Securities s : o.securities) {
-                 date = s.validTill;
+            for (Securities s : o.getSecurities()) {
+                 date = s.getValidTill();
                  listDates.add(date);
             }
         }
