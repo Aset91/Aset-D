@@ -1,18 +1,14 @@
-
-import org.junit.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.util.List;
-
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static sun.plugin.javascript.navig.JSType.Element;
 
 public class TaskTest {
 
@@ -21,14 +17,22 @@ public class TaskTest {
 
     @Before
     public void before() {
-        System.setProperty("webdriver.chrome.driver", "webDriver\\chromedriver.exe");
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.manage().timeouts().pageLoadTimeout(10, SECONDS);
-        driver.manage().timeouts().implicitlyWait(10, SECONDS);
 
-        String baseURL = "https://www.rgs.ru/";
-        driver.get(baseURL);
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--disable-notifications");
+        System.setProperty("webdriver.chrome.driver", "webdriver/chromedriver.exe");
+
+        driver = new ChromeDriver(options);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().pageLoadTimeout(30, SECONDS);
+        driver.manage().timeouts().implicitlyWait(10, SECONDS);
+        wait = new WebDriverWait(driver, 10, 1000);
+
+
+        //переходим по ссылке
+        String baseUrl = "http://www.rgs.ru";
+
+        driver.get(baseUrl);
     }
 
     @Test
@@ -44,8 +48,10 @@ public class TaskTest {
             WebElement forCompaniesButton = driver.findElement(By.xpath(forCompanies));
             forCompaniesButton.click();
 
-            String health = "//a[contains(text(),'Здоровье')]";
+            String health = "//a[@href='/products/juristic_person/health/index.wbp' and contains(@class, 'navigation')]";
+            waitUntilElementToBeVisible(By.xpath(health));
             WebElement healthButton = driver.findElement(By.xpath(health));
+
             healthButton.click();
 
             String insurance = "//a[contains(text(), 'медицинское страхование')]";
@@ -53,7 +59,7 @@ public class TaskTest {
             insuranceButton.click();
 
             // Проверить наличие заголовка - Добровольное медицинское страхование
-            Assert.assertEquals("Заголовок неверный", "Добровольное медицинское страхование", driver.getTitle());
+            Assert.assertEquals("Заголовок неверный", "Добровольное медицинское страхование в Росгосстрахе", driver.getTitle());
 
 
             //Нажать на кнопку - Отправить заявку
@@ -71,31 +77,34 @@ public class TaskTest {
             //	Имя, Фамилия, Отчество, Регион, Телефон,
             //	Эл. почта - qwertyqwerty,
             //	Комментарии, Я согласен на обработку
-            String inputField = "//input[@name = %s]";
+            String inputField = "//input[@name='%s']";
             fillInputField(driver.findElement(By.xpath(String.format(inputField, "LastName"))), "Иванов");
-            fillInputField(driver.findElement(By.xpath(String.format(inputField, "FistName"))), "Василий");
+            fillInputField(driver.findElement(By.xpath(String.format(inputField, "FirstName"))), "Василий");
             fillInputField(driver.findElement(By.xpath(String.format(inputField, "MiddleName"))), "Иванович");
-            fillInputField(driver.findElement(By.xpath(String.format(inputField, "Region"))), "Москва");
-            String phonePath = "//input[contains(@data-bind, 'Phone')]";
-            fillInputField(driver.findElement(By.xpath(phonePath)), "89268769078");
-            fillInputField(driver.findElement(By.xpath(String.format(inputField, "Email"))), "qwertyqwerty");
-            fillInputField(driver.findElement(By.xpath(String.format(inputField, "ContactDate"))), "11052021");
-            fillInputField(driver.findElement(By.xpath(String.format(inputField, "Comment"))), "...");
+            driver.findElement(By.xpath("//select[@name='Region']")).click();
+            driver.findElement(By.xpath("//select[@name='Region']")).sendKeys(Keys.DOWN);
+            driver.findElement(By.xpath("//select[@name='Region']")).click();
+            driver.findElement(By.xpath("//select[@name='Region']")).sendKeys(Keys.TAB);
+            driver.findElement(By.xpath("//select[@name='Region']")).sendKeys(Keys.TAB);
 
-            String checkBoxPath = "//input[@class=\"checkbox\"]";
+            String phonePath = "//input[contains(@data-bind, 'Phone')]";
+            fillInputFieldPhone(driver.findElement(By.xpath(phonePath)), "9268769078");
+            fillInputField(driver.findElement(By.xpath(String.format(inputField, "Email"))), "qwertyqwerty");
+            fillInputFieldDate(driver.findElement(By.xpath(String.format(inputField, "ContactDate"))), "11052021");
+            driver.findElement(By.xpath("//textarea[@name='Comment']")).sendKeys("...");
+
+            String checkBoxPath = "//input[@class='checkbox']";
             WebElement pressCheckBox = driver.findElement(By.xpath(checkBoxPath));
             pressCheckBox.click();
 
             //Нажать Отправить
-            String submit = "//button[contains(@data-bind, 'SubmitForm')]";
-            WebElement submitButton = driver.findElement(By.xpath(submit));
-            submitButton.click();
+
+            driver.findElement(By.xpath("//button[@id='button-m']")).click();
 
             //Проверить, что у Поля - Эл. почта присутствует сообщение об ошибке - Введите корректный email
             checkErrorMessageAtField(driver.findElement(By.xpath(String.format(inputField, "Email"))), "Некорректное значение");
+
         }
-
-
 
     @After
     public void after() {
@@ -109,6 +118,9 @@ public class TaskTest {
         private void waitUntilElementToBeClickable(WebElement element) {
             wait.until(ExpectedConditions.elementToBeClickable(element));
         }
+        private void waitUntilElementToBeClickable(By locator){
+        wait.until(ExpectedConditions.elementToBeClickable(locator));
+        }
         private void waitUntilElementToBeVisible(By locator) {
             wait.until(ExpectedConditions.visibilityOfElementLocated((locator)));
         }
@@ -116,14 +128,37 @@ public class TaskTest {
             wait.until(ExpectedConditions.visibilityOf(element));
         }
         private void fillInputField(WebElement element, String value) {
-        scrollToElementJs(element);
+            //scrollToElementJs(element);
+            waitUntilElementToBeClickable(element);
+            element.click();
+            element.sendKeys(value);
+            Assert.assertEquals("Поле было заполнено некорректно",
+                value, element.getAttribute("value"));
+            element.sendKeys(Keys.TAB);
+        }
+
+    private void fillInputFieldPhone(WebElement element, String value) {
+        //scrollToElementJs(element);
         waitUntilElementToBeClickable(element);
         element.click();
         element.sendKeys(value);
-        Assert.assertEquals("Поле было заполнено некоректно",
-            value, element.getAttribute("value"));
+        String phoneValue = "+7 (" + value.substring(0, 3) + ") " + value.substring(3,6) + "-" + value.substring(6,8) + "-" + value.substring(8, 10);
+        Assert.assertEquals("Поле было заполнено некорректно",
+                phoneValue, element.getAttribute("value"));
+        element.sendKeys(Keys.TAB);
+    }
 
-        }
+    private void fillInputFieldDate(WebElement element, String value) {
+        //scrollToElementJs(element);
+        waitUntilElementToBeClickable(element);
+        element.click();
+        element.sendKeys(value);
+        String dateValue = value.substring(0, 2) + "." + value.substring(2, 4) + "." + value.substring(4,8);
+        Assert.assertEquals("Поле было заполнено некорректно",
+                dateValue, element.getAttribute("value"));
+        element.sendKeys(Keys.TAB);
+    }
+
         private void checkErrorMessageAtField(WebElement element, String errorMessage) {
             element = element.findElement(By.xpath("/./..//span"));
             Assert.assertEquals("Проверка ошибки у поля не пройдена",
@@ -131,4 +166,5 @@ public class TaskTest {
         }
 
     }
+
 
